@@ -69,7 +69,10 @@ const ManageAccused = () => {
         fir_details: data.fir_details,
         police_station: data.police_station,
         tags: data.tags || [''],
-        profile_photo: data.profile_photo || ''
+        profile_photo: data.profile_photo || '',
+        latitude: data.latitude || null,
+        longitude: data.longitude || null,
+        manual_coordinates: (data.latitude && data.longitude) ? true : false
       });
       setEditingId(id);
       setShowForm(true);
