@@ -355,6 +355,25 @@ async def get_dashboard_stats(current_user: dict = Depends(get_current_user)):
         "city_stats": city_stats
     }
 
+# Users management endpoints
+@app.get("/api/users", response_model=list)
+async def get_all_users(current_user: dict = Depends(require_role("superadmin"))):
+    """Get all users (superadmin only)"""
+    users_list = list(users_collection.find({}, {"_id": 0, "password": 0}))
+    return users_list
+
+@app.delete("/api/users/{user_id}", response_model=dict)
+async def delete_user(user_id: str, current_user: dict = Depends(require_role("superadmin"))):
+    """Delete user (superadmin only)"""
+    # Don't allow deletion of current user
+    if users_collection.find_one({"user_id": user_id, "username": current_user["username"]}):
+        raise HTTPException(status_code=400, detail="Cannot delete your own account")
+    
+    result = users_collection.delete_one({"user_id": user_id})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="User not found")
+    return {"message": "User deleted successfully"}
+
 # Seed data endpoint
 @app.post("/api/seed-data", response_model=dict)
 async def seed_sample_data(current_user: dict = Depends(require_role("superadmin"))):
