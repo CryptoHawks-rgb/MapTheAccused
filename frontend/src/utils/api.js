@@ -50,6 +50,11 @@ export const dashboardAPI = {
   getStats: () => api.get('/dashboard/stats')
 };
 
+export const userAPI = {
+  getAll: () => api.get('/users'),
+  delete: (userId) => api.delete(`/users/${userId}`)
+};
+
 export const adminAPI = {
   seedData: () => api.post('/seed-data')
 };
