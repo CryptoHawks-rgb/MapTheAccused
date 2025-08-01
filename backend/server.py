@@ -68,6 +68,7 @@ class AccusedCreate(BaseModel):
     profile_photo: Optional[str] = None
     latitude: Optional[float] = None
     longitude: Optional[float] = None
+    manual_coordinates: Optional[bool] = False  # Flag to indicate if coordinates are manually provided
 
 class AccusedUpdate(BaseModel):
     full_name: Optional[str] = None
