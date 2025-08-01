@@ -290,6 +290,16 @@ const ManageUsers = () => {
                       {getRoleIcon(user.role)}
                       <span className="ml-1 capitalize">{user.role}</span>
                     </span>
+                    
+                    {user.role !== 'superadmin' && (
+                      <button
+                        onClick={() => handleDelete(user.user_id, user.username)}
+                        className="inline-flex items-center px-3 py-1 bg-danger-600 text-white text-sm rounded hover:bg-danger-700 transition-colors"
+                        title="Delete user"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    )}
                   </div>
                 </div>
               </div>
