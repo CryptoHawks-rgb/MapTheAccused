@@ -229,11 +229,19 @@ async def create_accused(accused: AccusedCreate, current_user: dict = Depends(re
     accused_data["created_at"] = datetime.utcnow()
     accused_data["created_by"] = current_user["username"]
     
-    # Geocode address if lat/lng not provided
-    if not accused_data["latitude"] or not accused_data["longitude"]:
+    # Handle coordinates - use manual if provided, otherwise geocode
+    if accused_data.get("manual_coordinates") and accused_data.get("latitude") and accused_data.get("longitude"):
+        # Use manually provided coordinates
+        print(f"Using manual coordinates: {accused_data['latitude']}, {accused_data['longitude']}")
+    else:
+        # Geocode address if lat/lng not manually provided
         lat, lng = geocode_address(accused_data["address"])
         accused_data["latitude"] = lat
         accused_data["longitude"] = lng
+        print(f"Geocoded coordinates: {lat}, {lng}")
+    
+    # Remove the flag before saving to database
+    accused_data.pop("manual_coordinates", None)
     
     accused_collection.insert_one(accused_data)
     return {"message": "Accused record created successfully", "accused_id": accused_data["accused_id"]}
