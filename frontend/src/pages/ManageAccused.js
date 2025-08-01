@@ -126,7 +126,10 @@ const ManageAccused = () => {
       fir_details: '',
       police_station: '',
       tags: [''],
-      profile_photo: ''
+      profile_photo: '',
+      latitude: null,
+      longitude: null,
+      manual_coordinates: false
     });
     setEditingId(null);
     setShowForm(false);
