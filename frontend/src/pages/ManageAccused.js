@@ -360,6 +360,61 @@ const ManageAccused = () => {
                 </button>
               </div>
 
+              {/* Coordinates Section */}
+              <div className="border-t border-gray-200 pt-4">
+                <div className="flex items-center justify-between mb-3">
+                  <label className="block text-sm font-medium text-gray-700">
+                    Location Coordinates (Optional)
+                  </label>
+                  <div className="flex items-center">
+                    <input
+                      type="checkbox"
+                      id="manual_coordinates"
+                      checked={formData.manual_coordinates || false}
+                      onChange={(e) => setFormData({...formData, manual_coordinates: e.target.checked})}
+                      className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
+                    />
+                    <label htmlFor="manual_coordinates" className="ml-2 text-sm text-gray-600">
+                      Provide manual coordinates
+                    </label>
+                  </div>
+                </div>
+                
+                {formData.manual_coordinates && (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Latitude</label>
+                      <input
+                        type="number"
+                        step="any"
+                        value={formData.latitude || ''}
+                        onChange={(e) => setFormData({...formData, latitude: e.target.value ? parseFloat(e.target.value) : null})}
+                        placeholder="e.g., 28.6139"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary-500 focus:border-primary-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Longitude</label>
+                      <input
+                        type="number"
+                        step="any"
+                        value={formData.longitude || ''}
+                        onChange={(e) => setFormData({...formData, longitude: e.target.value ? parseFloat(e.target.value) : null})}
+                        placeholder="e.g., 77.2090"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary-500 focus:border-primary-500"
+                      />
+                    </div>
+                  </div>
+                )}
+                
+                <p className="mt-2 text-xs text-gray-500">
+                  {formData.manual_coordinates 
+                    ? "Manual coordinates will be used. Leave blank to auto-geocode from address."
+                    : "Coordinates will be automatically generated from the address using OpenCage API."
+                  }
+                </p>
+              </div>
+
               <div className="flex justify-end space-x-3 pt-4 border-t border-gray-200">
                 <button
                   type="button"
