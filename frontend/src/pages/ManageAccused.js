@@ -30,7 +30,10 @@ const ManageAccused = () => {
     fir_details: '',
     police_station: '',
     tags: [''],
-    profile_photo: ''
+    profile_photo: '',
+    latitude: null,
+    longitude: null,
+    manual_coordinates: false
   });
   const [editingId, setEditingId] = useState(editId || null);
   const [searchQuery, setSearchQuery] = useState('');
