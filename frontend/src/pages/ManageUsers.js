@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { api } from '../utils/api';
+import { userAPI } from '../utils/api';
 import { 
   Plus, 
   Edit, 
@@ -12,7 +12,8 @@ import {
   X,
   Search,
   UserCheck,
-  Users as UsersIcon
+  Users as UsersIcon,
+  Trash2
 } from 'lucide-react';
 
 const ManageUsers = () => {
@@ -34,8 +35,11 @@ const ManageUsers = () => {
 
   const fetchUsers = async () => {
     try {
-      // Note: This endpoint doesn't exist in our backend, so we'll simulate it
-      // In a real application, you'd need to add a /api/users endpoint
+      const response = await userAPI.getAll();
+      setUsers(response.data);
+    } catch (error) {
+      console.error('Error fetching users:', error);
+      // Fallback to show at least the current admin user
       setUsers([
         {
           user_id: '1',
@@ -45,8 +49,6 @@ const ManageUsers = () => {
           created_at: new Date().toISOString()
         }
       ]);
-    } catch (error) {
-      console.error('Error fetching users:', error);
     } finally {
       setLoading(false);
     }
@@ -60,12 +62,24 @@ const ManageUsers = () => {
       if (result.success) {
         alert('User created successfully');
         resetForm();
-        fetchUsers();
+        fetchUsers(); // Refresh the users list
       } else {
         alert('Error creating user: ' + result.error);
       }
     } catch (error) {
       alert('Error creating user: ' + (error.response?.data?.detail || error.message));
+    }
+  };
+
+  const handleDelete = async (userId, username) => {
+    if (window.confirm(`Are you sure you want to delete user "${username}"? This action cannot be undone.`)) {
+      try {
+        await userAPI.delete(userId);
+        alert('User deleted successfully');
+        fetchUsers(); // Refresh the users list
+      } catch (error) {
+        alert('Error deleting user: ' + (error.response?.data?.detail || error.message));
+      }
     }
   };
 
