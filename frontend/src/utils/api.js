@@ -58,3 +58,16 @@ export const userAPI = {
 export const adminAPI = {
   seedData: () => api.post('/seed-data')
 };
+
+export const photoAPI = {
+  upload: (formData) => {
+    const token = localStorage.getItem('token');
+    return axios.post(`${BACKEND_URL}/api/upload-photo`, formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+        'Authorization': `Bearer ${token}`
+      }
+    });
+  },
+  delete: (filename) => api.delete(`/delete-photo/${filename}`)
+};
