@@ -370,6 +370,14 @@ const ManageAccused = () => {
                 </button>
               </div>
 
+              {/* Photo Upload Section */}
+              <div className="border-t border-gray-200 pt-4">
+                <PhotoUpload
+                  currentPhoto={formData.profile_photo}
+                  onPhotoChange={(photoUrl) => setFormData({...formData, profile_photo: photoUrl})}
+                />
+              </div>
+
               {/* Coordinates Section */}
               <div className="border-t border-gray-200 pt-4">
                 <div className="flex items-center justify-between mb-3">
