@@ -22,9 +22,10 @@ headers = {"Authorization": f"Bearer {token}"}
 
 # Create a large image (should be > 5MB)
 print("Creating large test image...")
-img = Image.new('RGB', (5000, 5000), color='blue')
+# Create a very large image that will exceed 5MB even with compression
+img = Image.new('RGB', (8000, 8000), color='blue')
 img_buffer = io.BytesIO()
-img.save(img_buffer, format='JPEG', quality=100)
+img.save(img_buffer, format='PNG')  # PNG is less compressed
 img_buffer.seek(0)
 
 print(f"Image size in memory: {len(img_buffer.getvalue())} bytes")
