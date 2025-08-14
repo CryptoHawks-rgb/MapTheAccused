@@ -384,6 +384,17 @@ async def update_accused(accused_id: str, accused_update: AccusedUpdate, current
 @app.delete("/api/accused/{accused_id}", response_model=dict)
 async def delete_accused(accused_id: str, current_user: dict = Depends(require_role("superadmin"))):
     """Delete accused record (superadmin only)"""
+    # Get accused data to delete associated photo
+    accused = accused_collection.find_one({"accused_id": accused_id})
+    if not accused:
+        raise HTTPException(status_code=404, detail="Accused not found")
+    
+    # Delete associated photo if exists
+    if accused.get("profile_photo") and accused["profile_photo"].startswith("/api/uploads/"):
+        filename = accused["profile_photo"].split("/")[-1]
+        delete_photo_file(filename)
+    
+    # Delete accused record
     result = accused_collection.delete_one({"accused_id": accused_id})
     if result.deleted_count == 0:
         raise HTTPException(status_code=404, detail="Accused not found")
