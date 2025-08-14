@@ -326,6 +326,28 @@ const AccusedDetail = () => {
                 <div className="text-gray-600">{accused.address}</div>
               </div>
             </div>
+
+            {/* Photo Display - Below Map Coordinates */}
+            {accused.profile_photo && (
+              <div className="mt-6 pt-6 border-t border-gray-200">
+                <h3 className="text-lg font-semibold text-gray-900 mb-3">Profile Photo</h3>
+                <div className="flex justify-center">
+                  <div className="w-48 h-48 rounded-lg overflow-hidden bg-gray-100 shadow-md">
+                    <img
+                      src={accused.profile_photo.startsWith('/api/uploads/') 
+                        ? `${process.env.REACT_APP_BACKEND_URL}${accused.profile_photo}` 
+                        : accused.profile_photo
+                      }
+                      alt={`${accused.full_name} profile`}
+                      className="w-full h-full object-cover"
+                      onError={(e) => {
+                        e.target.style.display = 'none';
+                      }}
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>
