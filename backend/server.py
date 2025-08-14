@@ -267,6 +267,41 @@ async def get_current_user_info(current_user: dict = Depends(get_current_user)):
         "role": current_user["role"]
     }
 
+# Photo upload endpoint
+@app.post("/api/upload-photo", response_model=dict)
+async def upload_photo(file: UploadFile = File(...), current_user: dict = Depends(require_role("admin"))):
+    """Upload photo for accused profile (admin/superadmin only)"""
+    # Validate file
+    if not validate_image_file(file):
+        raise HTTPException(
+            status_code=400, 
+            detail="Invalid file. Please upload a valid image (JPEG, PNG, WebP) under 5MB."
+        )
+    
+    try:
+        # Save file
+        filename = save_uploaded_file(file)
+        
+        # Return the URL path for accessing the file
+        photo_url = f"/api/uploads/{filename}"
+        
+        return {
+            "message": "Photo uploaded successfully",
+            "photo_url": photo_url,
+            "filename": filename
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error uploading file: {str(e)}")
+
+@app.delete("/api/delete-photo/{filename}", response_model=dict)
+async def delete_photo(filename: str, current_user: dict = Depends(require_role("admin"))):
+    """Delete uploaded photo (admin/superadmin only)"""
+    try:
+        delete_photo_file(filename)
+        return {"message": "Photo deleted successfully"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error deleting photo: {str(e)}")
+
 # Accused endpoints
 @app.post("/api/accused", response_model=dict)
 async def create_accused(accused: AccusedCreate, current_user: dict = Depends(require_role("admin"))):
