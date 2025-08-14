@@ -15,6 +15,8 @@ import uuid
 import requests
 from dotenv import load_dotenv
 import json
+import shutil
+from pathlib import Path
 
 load_dotenv()
 
