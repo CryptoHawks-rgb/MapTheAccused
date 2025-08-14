@@ -22,6 +22,13 @@ load_dotenv()
 
 app = FastAPI(title="MapTheAccused API", version="1.0.0")
 
+# Create uploads directory if it doesn't exist
+UPLOAD_DIR = "uploads"
+os.makedirs(UPLOAD_DIR, exist_ok=True)
+
+# Mount static files for serving uploaded images
+app.mount("/api/uploads", StaticFiles(directory=UPLOAD_DIR), name="uploads")
+
 # CORS middleware
 app.add_middleware(
     CORSMiddleware,
