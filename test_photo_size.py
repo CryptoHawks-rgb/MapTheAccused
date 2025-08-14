@@ -22,7 +22,7 @@ headers = {"Authorization": f"Bearer {token}"}
 
 # Create a large image (should be > 5MB)
 print("Creating large test image...")
-img = Image.new('RGB', (3000, 3000), color='blue')
+img = Image.new('RGB', (5000, 5000), color='blue')
 img_buffer = io.BytesIO()
 img.save(img_buffer, format='JPEG', quality=100)
 img_buffer.seek(0)
