@@ -171,6 +171,42 @@ def geocode_address(address: str) -> tuple:
         print(f"Geocoding error: {e}")
         return None, None
 
+def validate_image_file(file: UploadFile) -> bool:
+    """Validate uploaded image file"""
+    # Check file type
+    allowed_types = ["image/jpeg", "image/jpg", "image/png", "image/webp"]
+    if file.content_type not in allowed_types:
+        return False
+    
+    # Check file size (max 5MB)
+    if file.size and file.size > 5 * 1024 * 1024:  # 5MB in bytes
+        return False
+    
+    return True
+
+def save_uploaded_file(file: UploadFile) -> str:
+    """Save uploaded file and return filename"""
+    # Generate unique filename
+    file_extension = file.filename.split('.')[-1].lower()
+    unique_filename = f"{str(uuid.uuid4())}.{file_extension}"
+    file_path = os.path.join(UPLOAD_DIR, unique_filename)
+    
+    # Save file
+    with open(file_path, "wb") as buffer:
+        shutil.copyfileobj(file.file, buffer)
+    
+    return unique_filename
+
+def delete_photo_file(filename: str):
+    """Delete photo file from uploads directory"""
+    if filename:
+        file_path = os.path.join(UPLOAD_DIR, filename)
+        try:
+            if os.path.exists(file_path):
+                os.remove(file_path)
+        except Exception as e:
+            print(f"Error deleting file {filename}: {e}")
+
 # Create superadmin user on startup
 @app.on_event("startup")
 async def create_superadmin():
