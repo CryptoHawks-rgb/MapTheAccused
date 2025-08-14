@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { accusedAPI } from '../utils/api';
+import PhotoUpload from '../components/PhotoUpload';
 import { 
   Plus, 
   Edit, 
