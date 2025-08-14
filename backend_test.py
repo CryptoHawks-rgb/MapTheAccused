@@ -49,7 +49,7 @@ class MapTheAccusedAPITester:
             print(f"   Response: {response_data}")
         print()
     
-    def make_request(self, method: str, endpoint: str, data: Dict = None, headers: Dict = None) -> tuple:
+    def make_request(self, method: str, endpoint: str, data: Dict = None, headers: Dict = None, files: Dict = None) -> tuple:
         """Make HTTP request and return (success, response_data, status_code)"""
         try:
             url = f"{self.base_url}{endpoint}"
@@ -57,10 +57,17 @@ class MapTheAccusedAPITester:
             if headers:
                 request_headers.update(headers)
             
+            # Remove Content-Type for file uploads to let requests set it
+            if files:
+                request_headers.pop("Content-Type", None)
+            
             if method.upper() == "GET":
                 response = requests.get(url, headers=request_headers, timeout=10)
             elif method.upper() == "POST":
-                response = requests.post(url, json=data, headers=request_headers, timeout=10)
+                if files:
+                    response = requests.post(url, data=data, files=files, headers=request_headers, timeout=10)
+                else:
+                    response = requests.post(url, json=data, headers=request_headers, timeout=10)
             elif method.upper() == "PUT":
                 response = requests.put(url, json=data, headers=request_headers, timeout=10)
             elif method.upper() == "DELETE":
