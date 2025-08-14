@@ -20,25 +20,14 @@ response = requests.post(f"{base_url}/auth/login", json=login_data)
 token = response.json()["access_token"]
 headers = {"Authorization": f"Bearer {token}"}
 
-# Create a large image (should be > 5MB)
-print("Creating large test image...")
-# Create a very large image with random data to prevent compression
-import random
-img_data = []
-for i in range(8000):
-    row = []
-    for j in range(8000):
-        row.append((random.randint(0, 255), random.randint(0, 255), random.randint(0, 255)))
-    img_data.append(row)
+# Create a large file (should be > 5MB)
+print("Creating large test file...")
+# Create 6MB of data
+large_data = b'A' * (6 * 1024 * 1024)  # 6MB
+img_buffer = io.BytesIO(large_data)
 
-img = Image.new('RGB', (8000, 8000))
-img.putdata([pixel for row in img_data for pixel in row])
-img_buffer = io.BytesIO()
-img.save(img_buffer, format='PNG')
-img_buffer.seek(0)
-
-print(f"Image size in memory: {len(img_buffer.getvalue())} bytes")
-print(f"Image size in MB: {len(img_buffer.getvalue()) / (1024*1024):.2f} MB")
+print(f"File size: {len(large_data)} bytes")
+print(f"File size in MB: {len(large_data) / (1024*1024):.2f} MB")
 
 # Reset buffer position
 img_buffer.seek(0)
