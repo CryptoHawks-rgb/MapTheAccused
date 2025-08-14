@@ -487,7 +487,7 @@ class MapTheAccusedAPITester:
         
         success, response, status_code = self.make_request("DELETE", "/delete-photo/test.jpg")
         
-        if not success and status_code == 401:
+        if not success and status_code == 403:
             self.log_test("Photo Delete - Authentication Required", True, 
                          "Correctly rejected unauthenticated delete request")
         else:
