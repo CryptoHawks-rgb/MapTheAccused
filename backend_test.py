@@ -638,6 +638,18 @@ class MapTheAccusedAPITester:
         # Test geocoding integration
         self.test_geocoding_integration()
         
+        # Test photo upload functionality
+        uploaded_files = self.test_photo_upload_functionality()
+        
+        # Test photo delete functionality
+        self.test_photo_delete_functionality(uploaded_files)
+        
+        # Test accused management with photos
+        self.test_accused_with_photos()
+        
+        # Test photo role permissions
+        self.test_photo_role_permissions()
+        
         # Print summary
         self.print_summary()
     
