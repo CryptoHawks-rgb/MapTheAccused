@@ -22,10 +22,19 @@ headers = {"Authorization": f"Bearer {token}"}
 
 # Create a large image (should be > 5MB)
 print("Creating large test image...")
-# Create a very large image that will exceed 5MB even with compression
-img = Image.new('RGB', (8000, 8000), color='blue')
+# Create a very large image with random data to prevent compression
+import random
+img_data = []
+for i in range(8000):
+    row = []
+    for j in range(8000):
+        row.append((random.randint(0, 255), random.randint(0, 255), random.randint(0, 255)))
+    img_data.append(row)
+
+img = Image.new('RGB', (8000, 8000))
+img.putdata([pixel for row in img_data for pixel in row])
 img_buffer = io.BytesIO()
-img.save(img_buffer, format='PNG')  # PNG is less compressed
+img.save(img_buffer, format='PNG')
 img_buffer.seek(0)
 
 print(f"Image size in memory: {len(img_buffer.getvalue())} bytes")
