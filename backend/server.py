@@ -350,6 +350,18 @@ async def update_accused(accused_id: str, accused_update: AccusedUpdate, current
     if not update_data:
         raise HTTPException(status_code=400, detail="No data provided for update")
     
+    # Get current accused data to check for photo changes
+    current_accused = accused_collection.find_one({"accused_id": accused_id})
+    if not current_accused:
+        raise HTTPException(status_code=404, detail="Accused not found")
+    
+    # If profile_photo is being updated and there's an existing photo, delete the old one
+    if "profile_photo" in update_data and current_accused.get("profile_photo"):
+        old_photo_url = current_accused["profile_photo"]
+        if old_photo_url.startswith("/api/uploads/"):
+            old_filename = old_photo_url.split("/")[-1]
+            delete_photo_file(old_filename)
+    
     # Geocode address if it's being updated
     if "address" in update_data:
         lat, lng = geocode_address(update_data["address"])
