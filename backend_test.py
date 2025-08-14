@@ -421,7 +421,7 @@ class MapTheAccusedAPITester:
         
         success, response, status_code = self.make_request("POST", "/upload-photo", files=files)
         
-        if not success and status_code == 401:
+        if not success and status_code == 403:
             self.log_test("Photo Upload - Authentication Required", True, 
                          "Correctly rejected unauthenticated request")
         else:
