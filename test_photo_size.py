@@ -33,7 +33,7 @@ print(f"File size in MB: {len(large_data) / (1024*1024):.2f} MB")
 img_buffer.seek(0)
 
 # Try to upload
-files = {"file": ("large_test.png", img_buffer, "image/png")}
+files = {"file": ("large_test.jpg", img_buffer, "image/jpeg")}
 response = requests.post(f"{base_url}/upload-photo", files=files, headers=headers)
 
 print(f"Response status: {response.status_code}")
