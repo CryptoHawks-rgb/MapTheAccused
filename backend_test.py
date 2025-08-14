@@ -282,6 +282,56 @@ class MapTheAccusedAPITester:
         img_buffer.seek(0)
         return img_buffer
     
+    def test_geocoding_integration(self):
+        """Test OpenCage geocoding integration"""
+        print("🌍 Testing OpenCage Geocoding Integration...")
+        
+        # Create accused with Indian addresses to test geocoding
+        test_addresses = [
+            "Mumbai, Maharashtra",
+            "Bengaluru, Karnataka"
+        ]
+        
+        for i, address in enumerate(test_addresses):
+            accused_data = {
+                "full_name": f"Geocoding Test User {i+1}",
+                "phone_numbers": [f"+91-900000000{i}"],
+                "address": address,
+                "fraud_amount": 50000.0,
+                "case_id": f"GEO/TEST/{i+1}",
+                "fir_details": "Geocoding test case",
+                "police_station": f"Test Station {i+1}",
+                "tags": ["geocoding test"]
+            }
+            
+            success, response, status_code = self.make_request("POST", "/accused", accused_data)
+            
+            if success and "accused_id" in response:
+                accused_id = response["accused_id"]
+                
+                # Get the created record to check if geocoding worked
+                success, accused_detail, _ = self.make_request("GET", f"/accused/{accused_id}")
+                
+                if success:
+                    lat = accused_detail.get("latitude")
+                    lng = accused_detail.get("longitude")
+                    
+                    if lat is not None and lng is not None:
+                        self.log_test(f"Geocoding - {address}", True, 
+                                     f"Coordinates: {lat:.4f}, {lng:.4f}")
+                    else:
+                        self.log_test(f"Geocoding - {address}", False, 
+                                     "No coordinates found after geocoding")
+                    
+                    # Clean up test record
+                    self.make_request("DELETE", f"/accused/{accused_id}")
+                else:
+                    self.log_test(f"Geocoding - {address}", False, 
+                                 "Failed to retrieve created record")
+            else:
+                self.log_test(f"Geocoding - {address}", False, 
+                             f"Failed to create test record: {response}")
+    
     def test_photo_upload_functionality(self):
         """Test photo upload functionality comprehensively"""
         print("📸 Testing Photo Upload Functionality...")
