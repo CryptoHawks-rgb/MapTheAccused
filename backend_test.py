@@ -8,6 +8,8 @@ import requests
 import json
 import time
 import os
+import io
+from PIL import Image
 from typing import Dict, Any, Optional
 
 class MapTheAccusedAPITester:
