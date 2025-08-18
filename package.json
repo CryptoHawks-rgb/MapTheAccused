@@ -1,0 +1,43 @@
+{
+  "name": "maptheaccused",
+  "version": "1.0.0",
+  "description": "Fraud Case Visualization System - A comprehensive web application for visualizing accused individuals in fraud cases",
+  "main": "index.js",
+  "scripts": {
+    "install-all": "cd backend && pip install -r requirements.txt && cd ../frontend && yarn install",
+    "start": "concurrently \"cd backend && python server.py\" \"cd frontend && yarn start\"",
+    "build": "cd frontend && yarn build",
+    "test": "concurrently \"cd backend && python -m pytest\" \"cd frontend && yarn test\"",
+    "seed": "cd scripts && python seed_data.py",
+    "docker:up": "docker-compose up -d",
+    "docker:down": "docker-compose down",
+    "docker:build": "docker-compose build"
+  },
+  "keywords": [
+    "fraud-detection",
+    "visualization",
+    "mapping",
+    "case-management",
+    "law-enforcement",
+    "react",
+    "fastapi",
+    "mongodb"
+  ],
+  "author": "MapTheAccused Team",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/your-username/maptheaccused.git"
+  },
+  "bugs": {
+    "url": "https://github.com/your-username/maptheaccused/issues"
+  },
+  "homepage": "https://github.com/your-username/maptheaccused#readme",
+  "devDependencies": {
+    "concurrently": "^8.2.0"
+  },
+  "engines": {
+    "node": ">=16.0.0",
+    "python": ">=3.9.0"
+  }
+}
