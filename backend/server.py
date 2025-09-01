@@ -77,6 +77,8 @@ class AccusedCreate(BaseModel):
     police_station: str
     tags: List[str]
     profile_photo: Optional[str] = None
+    drive_link: str  # Mandatory field
+    chainanalysis_reactor_link: Optional[str] = None  # Optional field
     latitude: Optional[float] = None
     longitude: Optional[float] = None
     manual_coordinates: Optional[bool] = False  # Flag to indicate if coordinates are manually provided
@@ -91,6 +93,8 @@ class AccusedUpdate(BaseModel):
     police_station: Optional[str] = None
     tags: Optional[List[str]] = None
     profile_photo: Optional[str] = None
+    drive_link: Optional[str] = None
+    chainanalysis_reactor_link: Optional[str] = None
 
 class SearchQuery(BaseModel):
     query: str
@@ -183,6 +187,20 @@ def validate_image_file(file: UploadFile) -> bool:
         return False
     
     return True
+
+def validate_url(url: str) -> bool:
+    """Validate URL format"""
+    if not url:
+        return False
+    import re
+    url_pattern = re.compile(
+        r'^https?://'  # http:// or https://
+        r'(?:(?:[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?\.)+[A-Z]{2,6}\.?|'  # domain...
+        r'localhost|'  # localhost...
+        r'\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})'  # ...or ip
+        r'(?::\d+)?'  # optional port
+        r'(?:/?|[/?]\S+)$', re.IGNORECASE)
+    return url_pattern.match(url) is not None
 
 def save_uploaded_file(file: UploadFile) -> str:
     """Save uploaded file and return filename"""
@@ -307,6 +325,14 @@ async def delete_photo(filename: str, current_user: dict = Depends(require_role(
 async def create_accused(accused: AccusedCreate, current_user: dict = Depends(require_role("admin"))):
     """Create a new accused record (admin/superadmin only)"""
     accused_data = accused.dict()
+    
+    # Validate URLs
+    if not validate_url(accused_data["drive_link"]):
+        raise HTTPException(status_code=400, detail="Invalid drive link URL format")
+    
+    if accused_data.get("chainanalysis_reactor_link") and not validate_url(accused_data["chainanalysis_reactor_link"]):
+        raise HTTPException(status_code=400, detail="Invalid chainanalysis reactor link URL format")
+    
     accused_data["accused_id"] = str(uuid.uuid4())
     accused_data["created_at"] = datetime.utcnow()
     accused_data["created_by"] = current_user["username"]
@@ -350,13 +376,23 @@ async def update_accused(accused_id: str, accused_update: AccusedUpdate, current
     if not update_data:
         raise HTTPException(status_code=400, detail="No data provided for update")
     
+    # Validate URLs if provided
+    if "drive_link" in update_data and not validate_url(update_data["drive_link"]):
+        raise HTTPException(status_code=400, detail="Invalid drive link URL format")
+    
+    if "chainanalysis_reactor_link" in update_data and update_data["chainanalysis_reactor_link"] and not validate_url(update_data["chainanalysis_reactor_link"]):
+        raise HTTPException(status_code=400, detail="Invalid chainanalysis reactor link URL format")
+    
     # Get current accused data to check for photo changes
     current_accused = accused_collection.find_one({"accused_id": accused_id})
     if not current_accused:
         raise HTTPException(status_code=404, detail="Accused not found")
     
     # If profile_photo is being updated and there's an existing photo, delete the old one
-    if "profile_photo" in update_data and current_accused.get("profile_photo"):
+    # Only delete if we're changing to a different photo URL (not preserving existing)
+    if ("profile_photo" in update_data and 
+        current_accused.get("profile_photo") and 
+        update_data["profile_photo"] != current_accused.get("profile_photo")):
         old_photo_url = current_accused["profile_photo"]
         if old_photo_url.startswith("/api/uploads/"):
             old_filename = old_photo_url.split("/")[-1]
@@ -503,6 +539,8 @@ async def seed_sample_data(current_user: dict = Depends(require_role("superadmin
             "fir_details": "Cheating and criminal breach of trust under sections 420, 406 IPC",
             "police_station": "Connaught Place Police Station, New Delhi",
             "tags": ["loan fraud", "fake documents"],
+            "drive_link": "https://drive.google.com/drive/folders/sample-folder-1",
+            "chainanalysis_reactor_link": "https://reactor.chainalysis.com/case/sample-case-1",
             "created_at": datetime.utcnow(),
             "created_by": "system"
         },
@@ -516,6 +554,8 @@ async def seed_sample_data(current_user: dict = Depends(require_role("superadmin
             "fir_details": "Online investment fraud under IT Act and IPC 420",
             "police_station": "Banjara Hills Police Station, Hyderabad",
             "tags": ["crypto scam", "investment fraud"],
+            "drive_link": "https://drive.google.com/drive/folders/sample-folder-2",
+            "chainanalysis_reactor_link": "https://reactor.chainalysis.com/case/sample-case-2",
             "created_at": datetime.utcnow(),
             "created_by": "system"
         },
@@ -529,6 +569,8 @@ async def seed_sample_data(current_user: dict = Depends(require_role("superadmin
             "fir_details": "Bank fraud and forgery under sections 420, 468, 471 IPC",
             "police_station": "MG Road Police Station, Bengaluru",
             "tags": ["bank fraud", "forgery"],
+            "drive_link": "https://drive.google.com/drive/folders/sample-folder-3",
+            "chainanalysis_reactor_link": "https://reactor.chainalysis.com/case/sample-case-3",
             "created_at": datetime.utcnow(),
             "created_by": "system"
         },
@@ -542,6 +584,8 @@ async def seed_sample_data(current_user: dict = Depends(require_role("superadmin
             "fir_details": "Credit card fraud under sections 420, 468 IPC",
             "police_station": "Sector 20 Police Station, Noida",
             "tags": ["credit card fraud", "identity theft"],
+            "drive_link": "https://drive.google.com/drive/folders/sample-folder-4",
+            "chainanalysis_reactor_link": None,
             "created_at": datetime.utcnow(),
             "created_by": "system"
         },
@@ -555,6 +599,8 @@ async def seed_sample_data(current_user: dict = Depends(require_role("superadmin
             "fir_details": "Real estate fraud under sections 420, 506 IPC",
             "police_station": "Bandra Police Station, Mumbai",
             "tags": ["real estate fraud", "cheating"],
+            "drive_link": "https://drive.google.com/drive/folders/sample-folder-5",
+            "chainanalysis_reactor_link": "https://reactor.chainalysis.com/case/sample-case-5",
             "created_at": datetime.utcnow(),
             "created_by": "system"
         }
