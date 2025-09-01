@@ -13,7 +13,8 @@ import {
   Calendar,
   Edit,
   Trash2,
-  Shield
+  Shield,
+  ExternalLink
 } from 'lucide-react';
 
 const AccusedDetail = () => {
@@ -54,7 +55,7 @@ const AccusedDetail = () => {
   const formatCurrency = (amount) => {
     return new Intl.NumberFormat('en-IN', {
       style: 'currency',
-      currency: 'INR',
+      currency: 'USD',
     }).format(amount);
   };
 
@@ -241,51 +242,111 @@ const AccusedDetail = () => {
                   </div>
                 </div>
               )}
+
+              {/* Investigation Links Section */}
+              <div className="md:col-span-2">
+                <label className="block text-sm font-medium text-gray-700 mb-3">Investigation Links</label>
+                <div className="space-y-3">
+                  {/* Drive Link */}
+                  {accused.drive_link && (
+                    <div className="flex items-center space-x-3 p-3 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors">
+                      <div className="flex-shrink-0">
+                        <img 
+                          src="/google-drive-logo.png" 
+                          alt="Google Drive"  
+                          
+                        />
+                      </div>
+                      <div className="flex-1">
+                        <h4 className="text-sm font-medium text-gray-900">Google Drive</h4>
+                        <p className="text-xs text-gray-600">Case documents and evidence</p>
+                      </div>
+                      <a
+                        href={accused.drive_link}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center px-3 py-1 text-sm text-blue-700 bg-blue-100 rounded-md hover:bg-blue-200 transition-colors"
+                      >
+                        Open Drive
+                        <ExternalLink className="h-3 w-3 ml-1" />
+                      </a>
+                    </div>
+                  )}
+
+                  {/* Chainanalysis Reactor Link */}
+                  {accused.chainanalysis_reactor_link && (
+                    <div className="flex items-center space-x-3 p-3 bg-orange-50 rounded-lg hover:bg-orange-100 transition-colors">
+                      <div className="flex-shrink-0">
+                        <img 
+                          src="/reactor-logo.png" 
+                          alt="Chainanalysis Reactor" 
+                         
+                        />
+                      </div>
+                      <div className="flex-1">
+                        <h4 className="text-sm font-medium text-gray-900">Chainanalysis Reactor</h4>
+                        <p className="text-xs text-gray-600">Blockchain investigation</p>
+                      </div>
+                      <a
+                        href={accused.chainanalysis_reactor_link}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center px-3 py-1 text-sm text-orange-700 bg-orange-100 rounded-md hover:bg-orange-200 transition-colors"
+                      >
+                        Open Reactor
+                        <ExternalLink className="h-3 w-3 ml-1" />
+                      </a>
+                    </div>
+                  )}
+                </div>
+              </div>
             </div>
           </div>
 
-          {/* System Information */}
-          <div className="bg-white rounded-lg shadow card-shadow p-6">
-            <h2 className="text-xl font-semibold text-gray-900 mb-4">System Information</h2>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm text-gray-600">
-              <div>
-                <label className="block font-medium text-gray-700 mb-1">Created At</label>
-                <div className="flex items-center space-x-2">
-                  <Calendar className="h-4 w-4" />
-                  <span>{formatDate(accused.created_at)}</span>
-                </div>
-              </div>
-
-              <div>
-                <label className="block font-medium text-gray-700 mb-1">Created By</label>
-                <div className="flex items-center space-x-2">
-                  <User className="h-4 w-4" />
-                  <span>{accused.created_by}</span>
-                </div>
-              </div>
-
-              {accused.updated_at && (
-                <>
-                  <div>
-                    <label className="block font-medium text-gray-700 mb-1">Last Updated</label>
-                    <div className="flex items-center space-x-2">
-                      <Calendar className="h-4 w-4" />
-                      <span>{formatDate(accused.updated_at)}</span>
-                    </div>
+          {/* System Information - visible only to admin and superadmin */}
+          {(user?.role === 'admin' || user?.role === 'superadmin') && (
+            <div className="bg-white rounded-lg shadow card-shadow p-6">
+              <h2 className="text-xl font-semibold text-gray-900 mb-4">System Information</h2>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm text-gray-600">
+                <div>
+                  <label className="block font-medium text-gray-700 mb-1">Created At</label>
+                  <div className="flex items-center space-x-2">
+                    <Calendar className="h-4 w-4" />
+                    <span>{formatDate(accused.created_at)}</span>
                   </div>
+                </div>
 
-                  <div>
-                    <label className="block font-medium text-gray-700 mb-1">Updated By</label>
-                    <div className="flex items-center space-x-2">
-                      <User className="h-4 w-4" />
-                      <span>{accused.updated_by}</span>
-                    </div>
+                <div>
+                  <label className="block font-medium text-gray-700 mb-1">Created By</label>
+                  <div className="flex items-center space-x-2">
+                    <User className="h-4 w-4" />
+                    <span>{accused.created_by}</span>
                   </div>
-                </>
-              )}
+                </div>
+
+                {accused.updated_at && (
+                  <>
+                    <div>
+                      <label className="block font-medium text-gray-700 mb-1">Last Updated</label>
+                      <div className="flex items-center space-x-2">
+                        <Calendar className="h-4 w-4" />
+                        <span>{formatDate(accused.updated_at)}</span>
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block font-medium text-gray-700 mb-1">Updated By</label>
+                      <div className="flex items-center space-x-2">
+                        <User className="h-4 w-4" />
+                        <span>{accused.updated_by}</span>
+                      </div>
+                    </div>
+                  </>
+                )}
+              </div>
             </div>
-          </div>
+          )}
         </div>
 
         {/* Map Sidebar */}
@@ -333,11 +394,9 @@ const AccusedDetail = () => {
                 <h3 className="text-lg font-semibold text-gray-900 mb-3">Profile Photo</h3>
                 <div className="flex justify-center">
                   <div className="w-48 h-48 rounded-lg overflow-hidden bg-gray-100 shadow-md">
+                        <script>console.log('Initial profile_photo:', accused.profile_photo);</script>
                     <img
-                      src={accused.profile_photo.startsWith('/api/uploads/') 
-                        ? `${process.env.REACT_APP_BACKEND_URL}${accused.profile_photo}` 
-                        : accused.profile_photo
-                      }
+                      src={accused.profile_photo}
                       alt={`${accused.full_name} profile`}
                       className="w-full h-full object-cover"
                       onError={(e) => {

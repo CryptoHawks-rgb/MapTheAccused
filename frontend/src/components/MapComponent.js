@@ -46,7 +46,7 @@ const MapComponent = ({ accused = [], selectedAccused = null, onMarkerClick }) =
   const formatCurrency = (amount) => {
     return new Intl.NumberFormat('en-IN', {
       style: 'currency',
-      currency: 'INR',
+      currency: 'USD',
     }).format(amount);
   };
 

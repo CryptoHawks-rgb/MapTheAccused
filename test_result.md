@@ -205,7 +205,7 @@ When invoking testing agents, follow these guidelines:
 ### Data Consistency
 - Always use Indian addresses for geocoding tests
 - Use proper Indian phone number formats
-- Test with realistic fraud amounts in INR
+- Test with realistic fraud amounts in USD
 - Verify proper date formatting and display
 
 ---

@@ -12,7 +12,9 @@ import {
   Phone, 
   MapPin, 
   DollarSign,
-  AlertCircle
+  AlertCircle,
+  Link,
+  ExternalLink
 } from 'lucide-react';
 
 const ManageAccused = () => {
@@ -21,6 +23,7 @@ const ManageAccused = () => {
   
   const [accused, setAccused] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false); // Loading state for form submission
   const [showForm, setShowForm] = useState(!!editId);
   const [formData, setFormData] = useState({
     full_name: '',
@@ -32,6 +35,8 @@ const ManageAccused = () => {
     police_station: '',
     tags: [''],
     profile_photo: '',
+    drive_link: '',
+    chainanalysis_reactor_link: '',
     latitude: null,
     longitude: null,
     manual_coordinates: false
@@ -71,6 +76,8 @@ const ManageAccused = () => {
         police_station: data.police_station,
         tags: data.tags || [''],
         profile_photo: data.profile_photo || '',
+        drive_link: data.drive_link || '',
+        chainanalysis_reactor_link: data.chainanalysis_reactor_link || '',
         latitude: data.latitude || null,
         longitude: data.longitude || null,
         manual_coordinates: (data.latitude && data.longitude) ? true : false
@@ -85,12 +92,36 @@ const ManageAccused = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     
+    // Validate URLs
+    if (!validateURL(formData.drive_link)) {
+      alert('Please enter a valid Drive Link URL (must start with http:// or https://)');
+      return;
+    }
+    
+    if (formData.chainanalysis_reactor_link && !validateURL(formData.chainanalysis_reactor_link)) {
+      alert('Please enter a valid Chainanalysis Reactor Link URL (must start with http:// or https://)');
+      return;
+    }
+    
     const submitData = {
       ...formData,
       fraud_amount: parseFloat(formData.fraud_amount),
       phone_numbers: formData.phone_numbers.filter(phone => phone.trim()),
-      tags: formData.tags.filter(tag => tag.trim())
+      tags: formData.tags.filter(tag => tag.trim()),
+      // Ensure empty chainanalysis_reactor_link is sent as null
+      chainanalysis_reactor_link: formData.chainanalysis_reactor_link || null
     };
+
+    // For updates, if profile_photo is empty/unchanged, don't include it in the update data
+    // This preserves the existing photo
+    if (editingId) {
+      // Don't send profile_photo in update if it's empty string (preserve existing)
+      if (submitData.profile_photo === '') {
+        delete submitData.profile_photo;
+      }
+    }
+
+    setSubmitting(true); // Start loading state
 
     try {
       if (editingId) {
@@ -105,6 +136,8 @@ const ManageAccused = () => {
       fetchAccused();
     } catch (error) {
       alert('Error saving record: ' + (error.response?.data?.detail || error.message));
+    } finally {
+      setSubmitting(false); // End loading state
     }
   };
 
@@ -131,12 +164,15 @@ const ManageAccused = () => {
       police_station: '',
       tags: [''],
       profile_photo: '',
+      drive_link: '',
+      chainanalysis_reactor_link: '',
       latitude: null,
       longitude: null,
       manual_coordinates: false
     });
     setEditingId(null);
     setShowForm(false);
+    setSubmitting(false); // Reset loading state
   };
 
   const addPhoneField = () => {
@@ -187,6 +223,16 @@ const ManageAccused = () => {
     });
   };
 
+  const validateURL = (url) => {
+    if (!url) return false;
+    try {
+      new URL(url);
+      return url.startsWith('http://') || url.startsWith('https://');
+    } catch {
+      return false;
+    }
+  };
+
   const filteredAccused = accused.filter(person =>
     person.full_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     person.case_id.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -220,7 +266,19 @@ const ManageAccused = () => {
       {/* Form Modal */}
       {showForm && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+          <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto relative">
+            {/* Loading Overlay */}
+            {submitting && (
+              <div className="absolute inset-0 bg-white bg-opacity-75 flex items-center justify-center z-10 rounded-lg">
+                <div className="text-center">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600 mx-auto mb-2"></div>
+                  <p className="text-gray-600 font-medium">
+                    {editingId ? 'Updating record...' : 'Creating record...'}
+                  </p>
+                </div>
+              </div>
+            )}
+            
             <div className="p-6 border-b border-gray-200">
               <div className="flex items-center justify-between">
                 <h2 className="text-xl font-semibold text-gray-900">
@@ -228,7 +286,8 @@ const ManageAccused = () => {
                 </h2>
                 <button
                   onClick={resetForm}
-                  className="text-gray-400 hover:text-gray-600"
+                  disabled={submitting}
+                  className="text-gray-400 hover:text-gray-600 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <X className="h-6 w-6" />
                 </button>
@@ -241,9 +300,10 @@ const ManageAccused = () => {
                 <input
                   type="text"
                   required
+                  disabled={submitting}
                   value={formData.full_name}
                   onChange={(e) => setFormData({...formData, full_name: e.target.value})}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary-500 focus:border-primary-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary-500 focus:border-primary-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
                 />
               </div>
 
@@ -254,16 +314,18 @@ const ManageAccused = () => {
                     <input
                       type="tel"
                       required={index === 0}
+                      disabled={submitting}
                       value={phone}
                       onChange={(e) => updatePhoneField(index, e.target.value)}
                       placeholder="e.g., +91-9876543210"
-                      className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary-500 focus:border-primary-500"
+                      className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary-500 focus:border-primary-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
                     />
                     {index > 0 && (
                       <button
                         type="button"
+                        disabled={submitting}
                         onClick={() => removePhoneField(index)}
-                        className="px-3 py-2 text-danger-600 hover:bg-danger-50 rounded-md"
+                        className="px-3 py-2 text-danger-600 hover:bg-danger-50 rounded-md disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         <X className="h-4 w-4" />
                       </button>
@@ -272,8 +334,9 @@ const ManageAccused = () => {
                 ))}
                 <button
                   type="button"
+                  disabled={submitting}
                   onClick={addPhoneField}
-                  className="text-sm text-primary-600 hover:text-primary-700"
+                  className="text-sm text-primary-600 hover:text-primary-700 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   + Add another phone number
                 </button>
@@ -283,10 +346,11 @@ const ManageAccused = () => {
                 <label className="block text-sm font-medium text-gray-700 mb-1">Address *</label>
                 <textarea
                   required
+                  disabled={submitting}
                   value={formData.address}
                   onChange={(e) => setFormData({...formData, address: e.target.value})}
                   rows={3}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary-500 focus:border-primary-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary-500 focus:border-primary-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
                 />
               </div>
 
@@ -296,11 +360,12 @@ const ManageAccused = () => {
                   <input
                     type="number"
                     required
+                    disabled={submitting}
                     min="0"
                     step="0.01"
                     value={formData.fraud_amount}
                     onChange={(e) => setFormData({...formData, fraud_amount: e.target.value})}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary-500 focus:border-primary-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary-500 focus:border-primary-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
                   />
                 </div>
 
@@ -309,10 +374,11 @@ const ManageAccused = () => {
                   <input
                     type="text"
                     required
+                    disabled={submitting}
                     value={formData.case_id}
                     onChange={(e) => setFormData({...formData, case_id: e.target.value})}
                     placeholder="e.g., FIR/2024/001"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary-500 focus:border-primary-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary-500 focus:border-primary-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
                   />
                 </div>
               </div>
@@ -322,20 +388,49 @@ const ManageAccused = () => {
                 <input
                   type="text"
                   required
+                  disabled={submitting}
                   value={formData.police_station}
                   onChange={(e) => setFormData({...formData, police_station: e.target.value})}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary-500 focus:border-primary-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary-500 focus:border-primary-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
                 />
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Drive Link *</label>
+                  <input
+                    type="url"
+                    required
+                    disabled={submitting}
+                    value={formData.drive_link}
+                    onChange={(e) => setFormData({...formData, drive_link: e.target.value})}
+                    placeholder="https://drive.google.com/..."
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary-500 focus:border-primary-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Chainanalysis Reactor Link</label>
+                  <input
+                    type="url"
+                    disabled={submitting}
+                    value={formData.chainanalysis_reactor_link}
+                    onChange={(e) => setFormData({...formData, chainanalysis_reactor_link: e.target.value})}
+                    placeholder="https://reactor.chainalysis.com/..."
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary-500 focus:border-primary-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
+                  />
+                </div>
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">FIR Details *</label>
                 <textarea
                   required
+                  disabled={submitting}
                   value={formData.fir_details}
                   onChange={(e) => setFormData({...formData, fir_details: e.target.value})}
                   rows={3}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary-500 focus:border-primary-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary-500 focus:border-primary-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
                 />
               </div>
 
@@ -345,16 +440,18 @@ const ManageAccused = () => {
                   <div key={index} className="flex gap-2 mb-2">
                     <input
                       type="text"
+                      disabled={submitting}
                       value={tag}
                       onChange={(e) => updateTagField(index, e.target.value)}
                       placeholder="e.g., loan fraud, crypto scam"
-                      className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary-500 focus:border-primary-500"
+                      className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary-500 focus:border-primary-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
                     />
                     {index > 0 && (
                       <button
                         type="button"
+                        disabled={submitting}
                         onClick={() => removeTagField(index)}
-                        className="px-3 py-2 text-danger-600 hover:bg-danger-50 rounded-md"
+                        className="px-3 py-2 text-danger-600 hover:bg-danger-50 rounded-md disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         <X className="h-4 w-4" />
                       </button>
@@ -363,8 +460,9 @@ const ManageAccused = () => {
                 ))}
                 <button
                   type="button"
+                  disabled={submitting}
                   onClick={addTagField}
-                  className="text-sm text-primary-600 hover:text-primary-700"
+                  className="text-sm text-primary-600 hover:text-primary-700 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   + Add another tag
                 </button>
@@ -375,6 +473,7 @@ const ManageAccused = () => {
                 <PhotoUpload
                   currentPhoto={formData.profile_photo}
                   onPhotoChange={(photoUrl) => setFormData({...formData, profile_photo: photoUrl})}
+                  disabled={submitting}
                 />
               </div>
 
@@ -388,9 +487,10 @@ const ManageAccused = () => {
                     <input
                       type="checkbox"
                       id="manual_coordinates"
+                      disabled={submitting}
                       checked={formData.manual_coordinates || false}
                       onChange={(e) => setFormData({...formData, manual_coordinates: e.target.checked})}
-                      className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
+                      className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded disabled:opacity-50 disabled:cursor-not-allowed"
                     />
                     <label htmlFor="manual_coordinates" className="ml-2 text-sm text-gray-600">
                       Provide manual coordinates
@@ -405,10 +505,11 @@ const ManageAccused = () => {
                       <input
                         type="number"
                         step="any"
+                        disabled={submitting}
                         value={formData.latitude || ''}
                         onChange={(e) => setFormData({...formData, latitude: e.target.value ? parseFloat(e.target.value) : null})}
                         placeholder="e.g., 28.6139"
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary-500 focus:border-primary-500"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary-500 focus:border-primary-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
                       />
                     </div>
                     <div>
@@ -416,10 +517,11 @@ const ManageAccused = () => {
                       <input
                         type="number"
                         step="any"
+                        disabled={submitting}
                         value={formData.longitude || ''}
                         onChange={(e) => setFormData({...formData, longitude: e.target.value ? parseFloat(e.target.value) : null})}
                         placeholder="e.g., 77.2090"
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary-500 focus:border-primary-500"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary-500 focus:border-primary-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
                       />
                     </div>
                   </div>
@@ -436,17 +538,22 @@ const ManageAccused = () => {
               <div className="flex justify-end space-x-3 pt-4 border-t border-gray-200">
                 <button
                   type="button"
+                  disabled={submitting}
                   onClick={resetForm}
-                  className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 transition-colors"
+                  className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="inline-flex items-center px-4 py-2 bg-primary-600 text-white rounded-md hover:bg-primary-700 transition-colors"
+                  disabled={submitting}
+                  className="inline-flex items-center px-4 py-2 bg-primary-600 text-white rounded-md hover:bg-primary-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <Save className="h-4 w-4 mr-2" />
-                  {editingId ? 'Update' : 'Create'}
+                  {submitting ? 
+                    (editingId ? 'Updating...' : 'Creating...') : 
+                    (editingId ? 'Update' : 'Create')
+                  }
                 </button>
               </div>
             </form>

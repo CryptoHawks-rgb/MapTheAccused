@@ -118,7 +118,7 @@ const Login = () => {
             </button>
           </form>
 
-          <div className="mt-6 bg-gray-50 rounded-lg p-4">
+          {/* <div className="mt-6 bg-gray-50 rounded-lg p-4">
             <h3 className="font-medium text-gray-900 mb-2">Demo Credentials:</h3>
             <div className="text-sm text-gray-600 space-y-1">
               <div><strong>Superadmin:</strong> admin / admin123</div>
@@ -126,7 +126,7 @@ const Login = () => {
                 (Can manage users and accused records)
               </div>
             </div>
-          </div>
+          </div> */}
         </div>
       </div>
     </div>

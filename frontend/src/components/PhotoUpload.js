@@ -68,10 +68,11 @@ const PhotoUpload = ({ currentPhoto, onPhotoChange, disabled = false }) => {
         <div className="relative inline-block">
           <div className="relative w-32 h-32 rounded-lg overflow-hidden bg-gray-100">
             <img
-              src={preview.startsWith('/api/uploads/') 
-                ? `${process.env.REACT_APP_BACKEND_URL}${preview}` 
-                : preview
-              }
+              src={(() => {
+                // If backend URL is set (production or explicit), prefix it. Otherwise use relative path so CRA dev proxy works.
+                const backend = process.env.REACT_APP_BACKEND_URL ? process.env.REACT_APP_BACKEND_URL.replace(/\/$/, '') : '';
+                return preview.startsWith('/api/uploads/') ? `${backend}${preview}` : preview;
+              })()}
               alt="Profile preview"
               className="w-full h-full object-cover"
               onError={(e) => {

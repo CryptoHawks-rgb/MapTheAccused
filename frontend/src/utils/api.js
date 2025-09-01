@@ -1,10 +1,14 @@
 import axios from 'axios';
 
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8001';
+const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
+
+// Create axios instance. Use relative '/api' in development so CRA proxy (package.json) forwards requests
+// to the backend and avoids CORS issues. In production set REACT_APP_BACKEND_URL to the full backend URL.
+const baseURL = BACKEND_URL ? `${BACKEND_URL}/api` : '/api';
 
 // Create axios instance
 export const api = axios.create({
-  baseURL: `${BACKEND_URL}/api`,
+  baseURL,
   headers: {
     'Content-Type': 'application/json',
   },
@@ -61,11 +65,10 @@ export const adminAPI = {
 
 export const photoAPI = {
   upload: (formData) => {
-    const token = localStorage.getItem('token');
-    return axios.post(`${BACKEND_URL}/api/upload-photo`, formData, {
+    // Use the api axios instance so the Authorization interceptor runs and dev proxy is used when available.
+    return api.post('/upload-photo', formData, {
       headers: {
-        'Content-Type': 'multipart/form-data',
-        'Authorization': `Bearer ${token}`
+        'Content-Type': 'multipart/form-data'
       }
     });
   },
